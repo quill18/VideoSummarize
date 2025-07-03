@@ -157,3 +157,5 @@ Thumbs.db
 
 # Whisper model cache (optional - you might want to keep these)
 ~/.cache/whisper/
+
+claude.local.md

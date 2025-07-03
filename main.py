@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-VideoTranscribe - Phase 2: Local Video/Audio Transcription + AI Summarization
+VideoTranscribe - Local Video/Audio Transcription + AI Summarization
 Uses OpenAI Whisper for local speech-to-text processing and OpenAI API for Let's Play summaries.
 """
 
@@ -406,7 +406,7 @@ def main():
     """Main application entry point."""
     args = parse_arguments()
     
-    print(f"VideoTranscribe Phase 2 - Processing project: {args.project_name}")
+    print(f"VideoTranscribe - Processing project: {args.project_name}")
     print(f"Whisper model: {args.whisper_model}")
     if not args.transcribe_only:
         print(f"OpenAI model: {args.openai_model}")
