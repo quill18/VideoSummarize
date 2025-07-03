@@ -23,6 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import os
 import sys
+import signal
 from pathlib import Path
 from dotenv import load_dotenv
 import threading
@@ -90,6 +91,17 @@ CONTEXT_TEMPLATE = """Previous Episode Context:
 
 # Queue Configuration
 QUEUE_TIMEOUT = 1.0
+
+# Global flag for graceful shutdown
+shutdown_requested = False
+
+
+def signal_handler(signum, frame):
+    """Handle SIGINT (Ctrl+C) gracefully."""
+    global shutdown_requested
+    print("\n\nShutdown requested. Attempting graceful exit...")
+    print("Please wait for current operations to complete...")
+    shutdown_requested = True
 
 
 def parse_arguments():
@@ -347,7 +359,8 @@ def process_pipeline_unified(media_files, project_path, transcripts_path, summar
     if file_status['need_transcription']:
         transcription_thread = threading.Thread(
             target=transcribe_module.transcribe_worker,
-            args=(file_status['need_transcription'], media_files, transcripts_path, whisper_model, constants, transcription_queue)
+            args=(file_status['need_transcription'], media_files, transcripts_path, whisper_model, constants, transcription_queue),
+            daemon=True
         )
     
     summarization_thread = None
@@ -355,7 +368,8 @@ def process_pipeline_unified(media_files, project_path, transcripts_path, summar
         summarization_thread = threading.Thread(
             target=summarize_module.summarize_worker,
             args=(transcription_queue, project_path, transcripts_path, summaries_path, 
-                  project_name, openai_model, constants, summary_queue)
+                  project_name, openai_model, constants, summary_queue),
+            daemon=True
         )
     
     # Start threads
@@ -378,6 +392,10 @@ def process_pipeline_unified(media_files, project_path, transcripts_path, summar
     
     # Wait for completion and show progress
     while (transcription_thread and transcription_thread.is_alive()) or (summarization_thread and summarization_thread.is_alive()):
+        if shutdown_requested:
+            print("Shutdown requested. Stopping monitoring...")
+            break
+            
         try:
             # Check for completed summaries
             while True:
@@ -395,16 +413,27 @@ def process_pipeline_unified(media_files, project_path, transcripts_path, summar
         time.sleep(0.5)
     
     # Final cleanup
-    if transcription_thread:
-        transcription_thread.join()
-    if summarization_thread:
-        summarization_thread.join()
-    
-    print(f"Pipeline complete: {transcribed} transcribed, {summarized} summarized")
+    if shutdown_requested:
+        print("Graceful shutdown in progress...")
+        # Give threads a brief moment to finish current operations
+        if transcription_thread:
+            transcription_thread.join(timeout=2.0)
+        if summarization_thread:
+            summarization_thread.join(timeout=2.0)
+        print(f"Shutdown complete. Processed: {transcribed} transcribed, {summarized} summarized")
+    else:
+        if transcription_thread:
+            transcription_thread.join()
+        if summarization_thread:
+            summarization_thread.join()
+        print(f"Pipeline complete: {transcribed} transcribed, {summarized} summarized")
 
 
 def main():
     """Main application entry point."""
+    # Register signal handler for graceful shutdown
+    signal.signal(signal.SIGINT, signal_handler)
+    
     args = parse_arguments()
     
     print(f"VideoTranscribe - Processing project: {args.project_name}")
@@ -421,6 +450,10 @@ def main():
     except Exception as e:
         print(f"Unexpected error: {e}")
         sys.exit(1)
+    
+    # Exit gracefully if shutdown was requested
+    if shutdown_requested:
+        sys.exit(0)
 
 
 if __name__ == "__main__":
