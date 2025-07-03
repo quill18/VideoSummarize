@@ -2,7 +2,7 @@
 
 A Python application that automatically transcribes video/audio files using OpenAI Whisper and generates intelligent summaries optimized for Let's Play gaming content using OpenAI's API.
 
-Created by Martin 'quill18' Glaude. mostly using Claude Code.
+Created by Martin 'quill18' Glaude, mostly using Claude Code.
 
 ## Features
 
