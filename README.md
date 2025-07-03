@@ -165,6 +165,31 @@ OPENAI_MODEL=gpt-4                   # Override default OpenAI model (default: g
 OPENAI_MAX_TOKENS=1500               # Override token limit (default: 1000)
 ```
 
+## Customizing AI Prompts
+
+You can customize the AI summarization prompts to better suit your content style:
+
+1. **Copy the default prompt to create your override:**
+   ```bash
+   cp prompts/default_system_prompt.txt prompts/system_prompt_override.txt
+   ```
+
+2. **Edit the override file** with your preferred prompt style:
+   ```bash
+   nano prompts/system_prompt_override.txt
+   ```
+
+3. **How it works:**
+   - If `prompts/system_prompt_override.txt` exists and has content, it will be used
+   - If the override file is empty or missing, the default prompt is used
+   - The override file is git-ignored, so your customizations won't be committed
+
+**Example customizations:**
+- Add specific game terminology or context
+- Adjust the summary format or sections
+- Include additional analysis categories
+- Modify the tone or style of summaries
+
 ## Summary Format
 
 The AI generates structured summaries for each episode including:

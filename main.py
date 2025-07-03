@@ -34,6 +34,45 @@ import time
 load_dotenv()
 
 # ============================================================================
+# PROMPT LOADING FUNCTIONS
+# ============================================================================
+
+def load_system_prompt():
+    """Load system prompt from files with fallback logic."""
+    override_path = Path("prompts/system_prompt_override.txt")
+    default_path = Path("prompts/default_system_prompt.txt")
+    
+    # Check if override file exists and has content
+    if override_path.exists():
+        try:
+            with open(override_path, 'r', encoding='utf-8') as f:
+                override_content = f.read().strip()
+                if override_content:  # Not empty or just whitespace
+                    return override_content
+        except Exception as e:
+            print(f"Warning: Could not read override prompt file: {e}")
+    
+    # Fall back to default prompt
+    try:
+        with open(default_path, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except Exception as e:
+        print(f"Error: Could not read default prompt file: {e}")
+        # Ultimate fallback to hardcoded prompt
+        return """You are an AI assistant specialized in summarizing Let's Play gaming videos for content creators. 
+
+Your task is to analyze transcripts of Let's Play episodes and create helpful summaries that will assist the gamer in future recording sessions.
+
+For each episode, provide:
+1. **Episode Summary**: A concise overview of what happened in this episode. Focus on the main story, characters, and gameplay. Non-gameplay events (real life events, etc) should be left out.
+2. **Key Events**: Important story moments, achievements, or gameplay milestones
+3. **Funny Moments**: Funny moments or other relevant observations that could be referenced in future episodes
+4. **Decisions Made**: Any significant choices or strategies employed
+5. **TODOs for Future Episodes**: Specific reminders, objectives, or things to remember for upcoming sessions
+
+Keep summaries focused and practical - they should serve as useful reference material for the creator when planning future episodes."""
+
+# ============================================================================
 # CONFIGURATION CONSTANTS
 # ============================================================================
 
@@ -60,19 +99,6 @@ SUMMARY_EXTENSION = "_summary.txt"
 ENCODING = "utf-8"
 
 # Let's Play Prompt Template
-LETS_PLAY_SYSTEM_PROMPT = """You are an AI assistant specialized in summarizing Let's Play gaming videos for content creators. 
-
-Your task is to analyze transcripts of Let's Play episodes and create helpful summaries that will assist the gamer in future recording sessions.
-
-For each episode, provide:
-1. **Episode Summary**: A concise overview of what happened in this episode. Focus on the main story, characters, and gameplay. Non-gameplay events (real life events, etc) should be left out.
-2. **Key Events**: Important story moments, achievements, or gameplay milestones
-3. **Funny Moments**: Funny moments or other relevant observations that could be referenced in future episodes
-4. **Decisions Made**: Any significant choices or strategies employed
-5. **TODOs for Future Episodes**: Specific reminders, objectives, or things to remember for upcoming sessions
-
-Keep summaries focused and practical - they should serve as useful reference material for the creator when planning future episodes."""
-
 LETS_PLAY_PROMPT_TEMPLATE = """Game: {game_name}
 Episode: {episode_number}
 Project: {project_name}
@@ -213,7 +239,7 @@ def create_constants_dict():
         'ENCODING': ENCODING,
         'OPENAI_MAX_TOKENS': OPENAI_MAX_TOKENS,
         'OPENAI_TEMPERATURE': OPENAI_TEMPERATURE,
-        'LETS_PLAY_SYSTEM_PROMPT': LETS_PLAY_SYSTEM_PROMPT,
+        'LETS_PLAY_SYSTEM_PROMPT': load_system_prompt(),
         'LETS_PLAY_PROMPT_TEMPLATE': LETS_PLAY_PROMPT_TEMPLATE,
         'CONTEXT_TEMPLATE': CONTEXT_TEMPLATE,
     }
