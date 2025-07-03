@@ -238,127 +238,18 @@ def process_pipeline(args):
         print("Make sure all required modules are present.")
         sys.exit(1)
     
-    # Process based on mode
+    # Process with unified pipeline
     if args.summarize_only:
-        # Summarize existing transcripts
         print("Summarize-only mode: Processing existing transcripts")
-        summarize_only_pipeline(
-            project_path, transcripts_path, summaries_path, 
-            args.project_name, args.openai_model, constants
-        )
     elif args.transcribe_only:
-        # Transcribe only
         print("Transcribe-only mode: Processing media files")
-        transcribe_only_pipeline(
-            media_files, transcripts_path, args.whisper_model, constants
-        )
     else:
-        # Full pipeline with parallel processing
-        print("Parallel processing mode")
-        process_parallel_pipeline(
-            media_files, project_path, transcripts_path, summaries_path,
-            args.project_name, args.whisper_model, args.openai_model, constants
-        )
-
-
-def summarize_only_pipeline(project_path, transcripts_path, summaries_path, project_name, openai_model, constants):
-    """Process summarization only using the worker architecture."""
-    import transcribe_module
-    import summarize_module
+        print("Full pipeline mode: Processing transcription and summarization")
     
-    # Find all transcript files
-    transcript_files = []
-    if transcripts_path.exists():
-        for transcript_file in transcripts_path.iterdir():
-            if transcript_file.suffix == constants['TRANSCRIPT_EXTENSION']:
-                transcript_files.append(transcript_file)
-    
-    if not transcript_files:
-        print("No transcript files found to summarize.")
-        return
-    
-    # Find corresponding media files and check what needs processing
-    episode_mapping = summarize_module.create_media_file_to_episode_mapping(project_path, constants)
-    transcription_queue = queue.Queue()
-    
-    files_to_process = []
-    skipped_files = []
-    
-    for transcript_file in transcript_files:
-        # Find corresponding media file
-        media_stem = transcript_file.stem
-        media_file = None
-        for file_path in project_path.iterdir():
-            if file_path.is_file() and file_path.stem == media_stem:
-                if file_path.suffix.lower() in constants['SUPPORTED_EXTENSIONS']:
-                    media_file = file_path
-                    break
-        
-        if not media_file:
-            # Create a dummy media file object
-            media_file = transcript_file.with_suffix('.mp4')
-        
-        # Check if summary exists
-        if summarize_module.summary_exists(media_file, summaries_path, constants):
-            skipped_files.append(media_file)
-        else:
-            episode_number = episode_mapping.get(media_file.stem, 1)
-            files_to_process.append(media_file)
-            # Add to transcription queue for processing
-            transcription_queue.put({
-                'status': 'completed',
-                'file': media_file,
-                'transcript_path': transcript_file,
-                'episode_number': episode_number
-            })
-    
-    if skipped_files:
-        print(f"Skipping {len(skipped_files)} files (summaries already exist)")
-    
-    if not files_to_process:
-        print("All transcripts have been summarized. No work to do.")
-        return
-    
-    print(f"Processing {len(files_to_process)} summaries...")
-    
-    # Signal end of transcription
-    transcription_queue.put({'status': 'finished'})
-    
-    # Use the worker function directly without threading
-    dummy_summary_queue = queue.Queue()
-    summarize_module.summarize_worker(
-        transcription_queue, project_path, transcripts_path, summaries_path, 
-        project_name, openai_model, constants, dummy_summary_queue
-    )
-
-
-def transcribe_only_pipeline(media_files, transcripts_path, whisper_model, constants):
-    """Process transcription only using the worker architecture."""
-    import transcribe_module
-    
-    # Find files that need transcription
-    files_to_process = []
-    skipped_files = []
-    
-    for media_file in media_files:
-        if transcribe_module.transcript_exists(media_file, transcripts_path, constants):
-            skipped_files.append(media_file)
-        else:
-            files_to_process.append(media_file)
-    
-    if skipped_files:
-        print(f"Skipping {len(skipped_files)} files (transcripts already exist)")
-    
-    if not files_to_process:
-        print("All files have been transcribed. No work to do.")
-        return
-    
-    print(f"Processing {len(files_to_process)} files...")
-    
-    # Use the worker function directly without threading
-    dummy_queue = queue.Queue()
-    transcribe_module.transcribe_worker(
-        files_to_process, media_files, transcripts_path, whisper_model, constants, dummy_queue
+    process_pipeline_unified(
+        media_files, project_path, transcripts_path, summaries_path,
+        args.project_name, args.whisper_model, args.openai_model, constants,
+        transcribe_only=args.transcribe_only, summarize_only=args.summarize_only
     )
 
 
@@ -394,15 +285,26 @@ def analyze_file_status(media_files, transcripts_path, summaries_path, constants
     return files_status
 
 
-def process_parallel_pipeline(media_files, project_path, transcripts_path, summaries_path, 
-                            project_name, whisper_model, openai_model, constants):
-    """Process transcription and summarization in parallel."""
+def process_pipeline_unified(media_files, project_path, transcripts_path, summaries_path, 
+                            project_name, whisper_model, openai_model, constants, 
+                            transcribe_only=False, summarize_only=False):
+    """Process transcription and/or summarization with unified pipeline."""
     # Import modules
     import transcribe_module
     import summarize_module
     
     # Analyze what needs to be processed
     file_status = analyze_file_status(media_files, transcripts_path, summaries_path, constants)
+    
+    # Apply mode restrictions
+    if transcribe_only:
+        # Force skip summarization for transcribe-only mode
+        file_status['skipped_summarization'] = file_status['skipped_summarization'] + file_status['need_summarization']
+        file_status['need_summarization'] = []
+    elif summarize_only:
+        # Force skip transcription for summarize-only mode
+        file_status['skipped_transcription'] = file_status['skipped_transcription'] + file_status['need_transcription']
+        file_status['need_transcription'] = []
     
     print(f"File analysis:")
     print(f"  Need transcription: {len(file_status['need_transcription'])}")
