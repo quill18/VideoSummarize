@@ -159,3 +159,6 @@ Thumbs.db
 ~/.cache/whisper/
 
 claude.local.md
+
+# User prompt customizations
+prompts/system_prompt_override.txt
