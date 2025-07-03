@@ -160,7 +160,8 @@ You can override defaults by setting these variables in your `.env` file:
 OPENAI_API_KEY=your-api-key-here
 
 # Optional overrides
-OPENAI_MODEL=gpt-4                    # Override default model
+WHISPER_MODEL=base                   # Override default Whisper model (default: turbo)
+OPENAI_MODEL=gpt-4                   # Override default OpenAI model (default: gpt-4o-mini)
 OPENAI_MAX_TOKENS=1500               # Override token limit (default: 1000)
 ```
 

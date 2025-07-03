@@ -40,12 +40,12 @@ load_dotenv()
 DEBUG = False
 
 # Whisper Configuration
-DEFAULT_WHISPER_MODEL = "turbo"
+WHISPER_MODEL = os.getenv("WHISPER_MODEL", "turbo")
 AVAILABLE_WHISPER_MODELS = ["tiny", "base", "small", "medium", "large", "turbo"]
 SUPPORTED_EXTENSIONS = {".mp4", ".mpeg", ".webm", ".m4a", ".mp3", ".mpga", ".wav"}
 
 # OpenAI Configuration
-DEFAULT_OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 AVAILABLE_OPENAI_MODELS = ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini"]
 OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "1000"))
 OPENAI_TEMPERATURE = 0.7
@@ -117,16 +117,16 @@ Supported formats: {', '.join(sorted(SUPPORTED_EXTENSIONS))}
     
     parser.add_argument(
         "--whisper-model",
-        default=DEFAULT_WHISPER_MODEL,
+        default=WHISPER_MODEL,
         choices=AVAILABLE_WHISPER_MODELS,
-        help=f"Whisper model to use (default: {DEFAULT_WHISPER_MODEL})"
+        help=f"Whisper model to use (default: {WHISPER_MODEL})"
     )
     
     parser.add_argument(
         "--openai-model",
-        default=DEFAULT_OPENAI_MODEL,
+        default=OPENAI_MODEL,
         choices=AVAILABLE_OPENAI_MODELS,
-        help=f"OpenAI model to use for summarization (default: {DEFAULT_OPENAI_MODEL})"
+        help=f"OpenAI model to use for summarization (default: {OPENAI_MODEL})"
     )
     
     parser.add_argument(
