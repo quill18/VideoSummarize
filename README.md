@@ -132,9 +132,8 @@ python main.py my-game --transcribe-only
 python main.py my-game --summarize-only
 ```
 
-## Available Models
+## Available Whisper Models
 
-### Whisper Models
 | Model | Size | Speed | Accuracy | Memory |
 |-------|------|-------|----------|--------|
 | `tiny` | 39 MB | Very Fast | Low | ~1 GB |
@@ -143,13 +142,6 @@ python main.py my-game --summarize-only
 | `medium` | 769 MB | Slow | Better | ~5 GB |
 | `large` | 1550 MB | Very Slow | Best | ~10 GB |
 | `turbo` | 1550 MB | Fast | Best | ~6 GB |
-
-### OpenAI Models
-- `gpt-3.5-turbo` - Fast and cost-effective
-- `gpt-4o-mini` - Balanced performance (default)
-- `gpt-4o` - High quality
-- `gpt-4` - Premium quality
-- `gpt-4-turbo` - Latest GPT-4 with optimizations
 
 ## Environment Configuration
 
