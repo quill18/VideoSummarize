@@ -169,10 +169,12 @@ OPENAI_MAX_TOKENS=1500               # Override token limit (default: 1000)
 
 You can customize the AI summarization prompts to better suit your content style:
 
-1. **Copy the default prompt to create your override:**
+1. **Create your custom prompt file:**
    ```bash
    cp prompts/default_system_prompt.txt prompts/system_prompt_override.txt
    ```
+   
+   **Important:** You must create this file yourself. It's not included in the repository to prevent `git pull` from overwriting your customizations.
 
 2. **Edit the override file** with your preferred prompt style:
    ```bash
@@ -181,8 +183,8 @@ You can customize the AI summarization prompts to better suit your content style
 
 3. **How it works:**
    - If `prompts/system_prompt_override.txt` exists and has content, it will be used
-   - If the override file is empty or missing, the default prompt is used
-   - The override file is git-ignored, so your customizations won't be committed
+   - If the override file is missing or empty, the default prompt is used
+   - The override file is git-ignored, so your customizations are safe from future updates
 
 **Example customizations:**
 - Add specific game terminology or context
