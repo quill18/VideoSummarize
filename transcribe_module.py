@@ -100,30 +100,15 @@ def transcribe_media_files(media_files, transcripts_path, whisper_model, constan
     print(f"  Skipped: {len(skipped_files)}")
 
 
-def transcribe_worker(media_files, transcripts_path, whisper_model, constants, transcription_queue):
+def transcribe_worker(files_to_transcribe, all_media_files, transcripts_path, whisper_model, constants, transcription_queue):
     """Worker function for threaded transcription processing."""
-    # Check for existing transcripts
-    files_to_process = []
-    skipped_files = []
-    
-    for media_file in media_files:
-        if transcript_exists(media_file, transcripts_path, constants):
-            skipped_files.append(media_file)
-        else:
-            files_to_process.append(media_file)
-    
-    if skipped_files:
-        print(f"Skipping {len(skipped_files)} files (transcripts already exist):")
-        for skipped_file in skipped_files:
-            print(f"  - {skipped_file.name}")
-    
-    if not files_to_process:
+    if not files_to_transcribe:
         print("All files have been transcribed. No work to do.")
         # Signal completion
-        transcription_queue.put({'status': 'completed', 'file': None})
+        transcription_queue.put({'status': 'finished'})
         return
     
-    print(f"Transcription worker: Processing {len(files_to_process)} files...")
+    print(f"Transcription worker: Processing {len(files_to_transcribe)} files...")
     
     # Load Whisper model
     try:
@@ -132,9 +117,15 @@ def transcribe_worker(media_files, transcripts_path, whisper_model, constants, t
         transcription_queue.put({'status': 'error', 'error': f"Failed to load model: {e}"})
         return
     
+    # Sort all media files to establish consistent episode order
+    all_media_files_sorted = sorted(all_media_files, key=lambda x: x.name.lower())
+    
     # Process files
-    for i, media_file in enumerate(files_to_process, 1):
-        print(f"\nTranscribing file {i} of {len(files_to_process)}: {media_file.name}")
+    for media_file in files_to_transcribe:
+        # Get correct episode number based on position in full sorted list of ALL media files
+        episode_number = all_media_files_sorted.index(media_file) + 1
+        
+        print(f"\nTranscribing episode {episode_number}: {media_file.name}")
         transcript_path = get_transcript_path(media_file, transcripts_path, constants)
         
         if transcribe_file(model, media_file, transcript_path, constants):
@@ -143,7 +134,7 @@ def transcribe_worker(media_files, transcripts_path, whisper_model, constants, t
                 'status': 'completed',
                 'file': media_file,
                 'transcript_path': transcript_path,
-                'episode_number': i
+                'episode_number': episode_number
             })
         else:
             transcription_queue.put({

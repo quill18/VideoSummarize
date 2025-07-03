@@ -20,8 +20,8 @@ load_dotenv()
 # CONFIGURATION CONSTANTS
 # ============================================================================
 
-# Debug Configuration
-DEBUG = True
+# Debug Configuration (Prints the OpenAI prompt to the console)
+DEBUG = False
 
 # Whisper Configuration
 DEFAULT_WHISPER_MODEL = "turbo"
@@ -48,11 +48,11 @@ LETS_PLAY_SYSTEM_PROMPT = """You are an AI assistant specialized in summarizing 
 Your task is to analyze transcripts of Let's Play episodes and create helpful summaries that will assist the gamer in future recording sessions.
 
 For each episode, provide:
-1. **Episode Summary**: A concise overview of what happened in this episode
+1. **Episode Summary**: A concise overview of what happened in this episode. Focus on the main story, characters, and gameplay. Non-gameplay events (real life events, etc) should be left out.
 2. **Key Events**: Important story moments, achievements, or gameplay milestones
-3. **Decisions Made**: Any significant choices or strategies employed
-4. **TODOs for Future Episodes**: Specific reminders, objectives, or things to remember for upcoming sessions
-5. **Notes**: Any technical issues, funny moments, or other relevant observations
+3. **Funny Moments**: Funny moments or other relevant observations that could be referenced in future episodes
+4. **Decisions Made**: Any significant choices or strategies employed
+5. **TODOs for Future Episodes**: Specific reminders, objectives, or things to remember for upcoming sessions
 
 Keep summaries focused and practical - they should serve as useful reference material for the creator when planning future episodes."""
 
@@ -65,7 +65,7 @@ Project: {project_name}
 Current Episode Transcript:
 {transcript}
 
-Please provide a structured summary following the format specified in the system prompt."""
+Provide a structured summary following the format specified in the system prompt."""
 
 CONTEXT_TEMPLATE = """Previous Episode Context:
 {previous_summaries}
@@ -324,12 +324,16 @@ def process_parallel_pipeline(media_files, project_path, transcripts_path, summa
     transcription_queue = queue.Queue()
     summary_queue = queue.Queue()
     
+    # Create episode mapping for consistent numbering
+    import summarize_module
+    episode_mapping = summarize_module.create_media_file_to_episode_mapping(project_path, constants)
+    
     # Add existing transcripts to the queue for summarization
     for media_file in file_status['need_summarization']:
         if media_file not in file_status['need_transcription']:
             # This file has transcript but needs summary
             transcript_path = transcribe_module.get_transcript_path(media_file, transcripts_path, constants)
-            episode_number = media_files.index(media_file) + 1
+            episode_number = episode_mapping.get(media_file.stem, 1)
             transcription_queue.put({
                 'status': 'completed',
                 'file': media_file,
@@ -342,7 +346,7 @@ def process_parallel_pipeline(media_files, project_path, transcripts_path, summa
     if file_status['need_transcription']:
         transcription_thread = threading.Thread(
             target=transcribe_module.transcribe_worker,
-            args=(file_status['need_transcription'], transcripts_path, whisper_model, constants, transcription_queue)
+            args=(file_status['need_transcription'], media_files, transcripts_path, whisper_model, constants, transcription_queue)
         )
     
     summarization_thread = None

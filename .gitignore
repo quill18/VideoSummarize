@@ -133,6 +133,7 @@ dmypy.json
 # Project-specific ignores
 # User projects and their media files
 projects/
+.docs/
 
 # Temporary files
 *.tmp
