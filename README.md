@@ -114,7 +114,6 @@ python main.py <project_name>
 | `--openai-model` | OpenAI model for summarization | `gpt-4o-mini` |
 | `--transcribe-only` | Only transcribe (skip summarization) | - |
 | `--summarize-only` | Only summarize existing transcripts | - |
-| `--no-parallel` | Process sequentially instead of parallel | - |
 
 ### Examples
 
@@ -131,11 +130,6 @@ python main.py my-game --transcribe-only
 **Only generate summaries for existing transcripts:**
 ```bash
 python main.py my-game --summarize-only
-```
-
-**Process files sequentially:**
-```bash
-python main.py my-game --no-parallel
 ```
 
 ## Available Models

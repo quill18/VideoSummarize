@@ -250,92 +250,10 @@ def summarize_transcript(media_file, transcript_path, summaries_path, project_pa
         return False
 
 
-def summarize_existing_transcripts(project_path, transcripts_path, summaries_path, project_name, openai_model, constants):
-    """Summarize all existing transcripts (synchronous version)."""
-    # Find all transcript files
-    transcript_files = []
-    if transcripts_path.exists():
-        for transcript_file in transcripts_path.iterdir():
-            if transcript_file.suffix == constants['TRANSCRIPT_EXTENSION']:
-                transcript_files.append(transcript_file)
-    
-    if not transcript_files:
-        print("No transcript files found to summarize.")
-        return
-    
-    # Sort files to process in order
-    transcript_files.sort(key=lambda x: x.name.lower())
-    
-    # Create episode mapping for consistent numbering
-    episode_mapping = create_media_file_to_episode_mapping(project_path, constants)
-    
-    # Find corresponding media files for episode numbering
-    media_files = []
-    for transcript_file in transcript_files:
-        # Find corresponding media file by stem name
-        media_stem = transcript_file.stem
-        for file_path in project_path.iterdir():
-            if file_path.is_file() and file_path.stem == media_stem:
-                if file_path.suffix.lower() in constants['SUPPORTED_EXTENSIONS']:
-                    media_files.append(file_path)
-                    break
-        else:
-            # Create a dummy media file object for processing
-            media_files.append(transcript_file.with_suffix('.mp4'))  # Dummy extension
-    
-    # Check which summaries need to be created
-    files_to_process = []
-    skipped_files = []
-    
-    for transcript_file, media_file in zip(transcript_files, media_files):
-        # Get correct episode number from mapping
-        episode_number = episode_mapping.get(media_file.stem, len(files_to_process) + 1)
-        
-        if summary_exists(media_file, summaries_path, constants):
-            skipped_files.append(media_file)
-        else:
-            files_to_process.append((transcript_file, media_file, episode_number))
-    
-    if skipped_files:
-        print(f"Skipping {len(skipped_files)} files (summaries already exist):")
-        for skipped_file in skipped_files:
-            print(f"  - {skipped_file.stem}")
-    
-    if not files_to_process:
-        print("All transcripts have been summarized. No work to do.")
-        return
-    
-    print(f"Summarizing {len(files_to_process)} transcripts...")
-    print("-" * 50)
-    
-    # Sort files to process by episode number
-    files_to_process.sort(key=lambda x: x[2])  # Sort by episode number
-    
-    # Process files
-    successful = 0
-    failed = 0
-    
-    for transcript_file, media_file, episode_number in files_to_process:
-        print(f"\nSummarizing episode {episode_number}: {media_file.stem}")
-        
-        if summarize_transcript(media_file, transcript_file, summaries_path, project_path, project_name, episode_number, openai_model, constants):
-            successful += 1
-        else:
-            failed += 1
-        
-        # Brief pause between API calls to be respectful
-        time.sleep(1)
-    
-    # Summary
-    print("-" * 50)
-    print(f"Summarization complete:")
-    print(f"  Successful: {successful}")
-    print(f"  Failed: {failed}")
-    print(f"  Skipped: {len(skipped_files)}")
 
 
 def summarize_worker(transcription_queue, project_path, transcripts_path, summaries_path, project_name, openai_model, constants, summary_queue):
-    """Worker function for threaded summarization processing."""
+    """Worker function for summarization processing."""
     print("Summarization worker: Starting...")
     
     processed_count = 0

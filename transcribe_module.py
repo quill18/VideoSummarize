@@ -52,56 +52,9 @@ def transcribe_file(model, media_file, transcript_path, constants):
         return False
 
 
-def transcribe_media_files(media_files, transcripts_path, whisper_model, constants):
-    """Transcribe a list of media files (synchronous version)."""
-    # Check for existing transcripts
-    files_to_process = []
-    skipped_files = []
-    
-    for media_file in media_files:
-        if transcript_exists(media_file, transcripts_path, constants):
-            skipped_files.append(media_file)
-        else:
-            files_to_process.append(media_file)
-    
-    if skipped_files:
-        print(f"Skipping {len(skipped_files)} files (transcripts already exist):")
-        for skipped_file in skipped_files:
-            print(f"  - {skipped_file.name}")
-    
-    if not files_to_process:
-        print("All files have been transcribed. No work to do.")
-        return
-    
-    print(f"Processing {len(files_to_process)} files...")
-    print("-" * 50)
-    
-    # Load Whisper model
-    model = load_whisper_model(whisper_model)
-    
-    # Process files
-    successful = 0
-    failed = 0
-    
-    for i, media_file in enumerate(files_to_process, 1):
-        print(f"\nFile {i} of {len(files_to_process)}")
-        transcript_path = get_transcript_path(media_file, transcripts_path, constants)
-        
-        if transcribe_file(model, media_file, transcript_path, constants):
-            successful += 1
-        else:
-            failed += 1
-    
-    # Summary
-    print("-" * 50)
-    print(f"Transcription complete:")
-    print(f"  Successful: {successful}")
-    print(f"  Failed: {failed}")
-    print(f"  Skipped: {len(skipped_files)}")
-
 
 def transcribe_worker(files_to_transcribe, all_media_files, transcripts_path, whisper_model, constants, transcription_queue):
-    """Worker function for threaded transcription processing."""
+    """Worker function for transcription processing."""
     if not files_to_transcribe:
         print("All files have been transcribed. No work to do.")
         # Signal completion
