@@ -1,6 +1,6 @@
 # VideoSummarize
 
-A Python application that automatically transcribes video/audio files using OpenAI Whisper and generates intelligent summaries optimized for Let's Play gaming content using OpenAI's API.
+A Python application that automatically transcribes video/audio files using OpenAI Whisper and generates intelligent summaries content using OpenAI's API. The example prompt is optimized for Let's Play gaming content, but it can be modified to fit any type of video.
 
 Created by Martin 'quill18' Glaude, mostly using Claude Code.
 
