@@ -95,7 +95,7 @@ PROJECTS_DIR = "projects"
 TRANSCRIPTS_DIR = "transcripts"
 SUMMARIES_DIR = "summaries"
 TRANSCRIPT_EXTENSION = ".txt"
-SUMMARY_EXTENSION = "_summary.txt"
+SUMMARY_EXTENSION = "_summary.md"
 ENCODING = "utf-8"
 
 # Let's Play Prompt Template
