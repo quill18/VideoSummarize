@@ -6,18 +6,17 @@ Created by Martin 'quill18' Glaude, mostly using Claude Code.
 
 ## Features
 
-- **Local Transcription**: Uses OpenAI Whisper for high-quality, local speech-to-text processing
-- **AI-Powered Summaries**: Generates contextual episode summaries with OpenAI's API
-- **Let's Play Optimized**: Specialized prompts for gaming content with episode context and TODOs
+- **Local Transcription**: Uses OpenAI Whisper for high-quality, local speech-to-text processing (this is done on your local machine, for free)
+- **AI-Powered Summaries**: Generates contextual episode summaries with OpenAI's API (this requires an API key) TODO: Add support for local LLMs / OpenRouter / etc...
 - **Smart Processing**: Automatically skips already-processed files
-- **Parallel Processing**: Transcription and summarization run simultaneously for efficiency
+- **Parallel Processing**: Transcription and summarization run simultaneously for better speed
 - **Multiple Formats**: Supports MP4, MP3, WAV, M4A, MPEG, WEBM, and MPGA files
 
 ## Prerequisites
 
 - Python 3.8 or higher
 - FFmpeg (required by Whisper for video processing)
-- OpenAI API key
+- OpenAI API key (for summarizing)
 
 ### Installing FFmpeg
 
@@ -142,6 +141,8 @@ python main.py my-game --summarize-only
 | `medium` | 769 MB | Slow | Better | ~5 GB |
 | `large` | 1550 MB | Very Slow | Best | ~10 GB |
 | `turbo` | 1550 MB | Fast | Best | ~6 GB |
+
+Turbo is the default and is recommended if you have sufficient memory.
 
 ## Environment Configuration
 
