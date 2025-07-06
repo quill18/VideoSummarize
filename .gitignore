@@ -162,3 +162,5 @@ claude.local.md
 
 # User prompt customizations
 prompts/system_prompt_override.txt
+# Project-specific prompt extensions
+projects/*/system_prompt_extension.txt

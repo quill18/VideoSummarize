@@ -37,10 +37,13 @@ load_dotenv()
 # PROMPT LOADING FUNCTIONS
 # ============================================================================
 
-def load_system_prompt():
-    """Load system prompt from files with fallback logic."""
+def load_system_prompt(project_path=None):
+    """Load system prompt from files with fallback logic and optional project extension."""
     override_path = Path("prompts/system_prompt_override.txt")
     default_path = Path("prompts/default_system_prompt.txt")
+    
+    # Load base system prompt (override or default)
+    base_prompt = None
     
     # Check if override file exists and has content
     if override_path.exists():
@@ -48,29 +51,31 @@ def load_system_prompt():
             with open(override_path, 'r', encoding='utf-8') as f:
                 override_content = f.read().strip()
                 if override_content:  # Not empty or just whitespace
-                    return override_content
+                    base_prompt = override_content
         except Exception as e:
             print(f"Warning: Could not read override prompt file: {e}")
     
-    # Fall back to default prompt
-    try:
+    # Fall back to default prompt if override not found
+    if not base_prompt:
+        # Intentionally let this fail hard if default prompt file can't be read
+        # This is a user-controllable issue that should not be silently ignored
         with open(default_path, 'r', encoding='utf-8') as f:
-            return f.read().strip()
-    except Exception as e:
-        print(f"Error: Could not read default prompt file: {e}")
-        # Ultimate fallback to hardcoded prompt
-        return """You are an AI assistant specialized in summarizing Let's Play gaming videos for content creators. 
-
-Your task is to analyze transcripts of Let's Play episodes and create helpful summaries that will assist the gamer in future recording sessions.
-
-For each episode, provide:
-1. **Episode Summary**: A concise overview of what happened in this episode. Focus on the main story, characters, and gameplay. Non-gameplay events (real life events, etc) should be left out.
-2. **Key Events**: Important story moments, achievements, or gameplay milestones
-3. **Funny Moments**: Funny moments or other relevant observations that could be referenced in future episodes
-4. **Decisions Made**: Any significant choices or strategies employed
-5. **TODOs for Future Episodes**: Specific reminders, objectives, or things to remember for upcoming sessions
-
-Keep summaries focused and practical - they should serve as useful reference material for the creator when planning future episodes."""
+            base_prompt = f.read().strip()
+    
+    # Check for project-specific extension
+    if project_path:
+        extension_path = Path(project_path) / "system_prompt_extension.txt"
+        if extension_path.exists():
+            try:
+                with open(extension_path, 'r', encoding='utf-8') as f:
+                    extension_content = f.read().strip()
+                    if extension_content:
+                        print(f"Found project-specific prompt extension: {extension_path}")
+                        base_prompt = base_prompt + "\n\n" + extension_content
+            except Exception as e:
+                print(f"Warning: Could not read project extension prompt file: {e}")
+    
+    return base_prompt
 
 # ============================================================================
 # CONFIGURATION CONSTANTS
@@ -227,7 +232,7 @@ def discover_media_files(project_path):
     return media_files
 
 
-def create_constants_dict():
+def create_constants_dict(project_path=None):
     """Create a dictionary of all constants to pass to modules."""
     return {
         'DEBUG': DEBUG,
@@ -239,7 +244,7 @@ def create_constants_dict():
         'ENCODING': ENCODING,
         'OPENAI_MAX_TOKENS': OPENAI_MAX_TOKENS,
         'OPENAI_TEMPERATURE': OPENAI_TEMPERATURE,
-        'LETS_PLAY_SYSTEM_PROMPT': load_system_prompt(),
+        'LETS_PLAY_SYSTEM_PROMPT': load_system_prompt(project_path),
         'LETS_PLAY_PROMPT_TEMPLATE': LETS_PLAY_PROMPT_TEMPLATE,
         'CONTEXT_TEMPLATE': CONTEXT_TEMPLATE,
     }
@@ -264,7 +269,7 @@ def process_pipeline(args):
     print(f"Found {len(media_files)} media files")
     
     # Create constants dictionary
-    constants = create_constants_dict()
+    constants = create_constants_dict(project_path)
     
     # Import modules (late import to avoid circular dependencies)
     try:

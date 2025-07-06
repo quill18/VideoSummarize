@@ -84,7 +84,7 @@ Download from [https://ffmpeg.org/download.html](https://ffmpeg.org/download.htm
 
 4. **Find your results:**
    - **Transcripts**: `projects/my-game-series/transcripts/episode_01.txt`
-   - **Summaries**: `projects/my-game-series/summaries/episode_01_summary.txt`
+   - **Summaries**: `projects/my-game-series/summaries/episode_01_summary.md`
 
 ### Output Structure
 ```
@@ -95,8 +95,8 @@ projects/my-game-series/
 │   ├── episode_01.txt
 │   └── episode_02.txt
 └── summaries/                  # AI-generated summaries
-    ├── episode_01_summary.txt
-    └── episode_02_summary.txt
+    ├── episode_01_summary.md
+    └── episode_02_summary.md
 ```
 
 ## Command Line Options
@@ -183,6 +183,42 @@ You can customize the AI summarization prompts to better suit your content style
 - Adjust the summary format or sections
 - Include additional analysis categories
 - Modify the tone or style of summaries
+
+### Project-Specific Prompt Extensions
+
+For individual projects, you can add custom context to the AI prompts on a per-project basis:
+
+1. **Create a project-specific extension file:**
+   ```bash
+   # Inside your project folder
+   echo "Additional context for this game..." > projects/my-game-series/system_prompt_extension.txt
+   ```
+
+2. **Add project-specific instructions:**
+   ```bash
+   # Example for Terra Invicta project
+   nano projects/Terra_Invicta/system_prompt_extension.txt
+   ```
+   
+   Example content:
+   ```
+   This is a complex grand strategy game about defending Earth from alien invasion. 
+   Focus on faction relationships, research priorities, and strategic decisions.
+   Pay attention to diplomatic choices and their long-term consequences.
+   ```
+
+3. **How it works:**
+   - The extension content is appended to the main system prompt
+   - Only applies to that specific project
+   - File is git-ignored so it won't be committed to the repository
+   - If the file doesn't exist, the standard prompt is used
+
+**Use cases:**
+- Add game-specific terminology and mechanics
+- Include character names and relationships
+- Set context for complex storylines
+- Adjust focus areas (combat, story, exploration, etc.)
+- Add reminders about specific gameplay mechanics
 
 ## Summary Format
 

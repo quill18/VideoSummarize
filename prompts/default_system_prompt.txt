@@ -10,3 +10,5 @@ For each episode, provide:
 5. **TODOs for Future Episodes**: Specific reminders, objectives, or things to remember for upcoming sessions
 
 Keep summaries focused and practical - they should serve as useful reference material for the creator when planning future episodes.
+
+Use Markdown formatting.
